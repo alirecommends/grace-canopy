@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grace Booth Structural Mockup</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a2e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: rgba(15, 15, 30, 0.85);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            max-width: 380px;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform-origin: top left;
+        }
+
+        #ui-overlay.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        #ui-toggle-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(15, 15, 30, 0.85);
+            color: #4da8da;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        #ui-toggle-btn:hover {
+            background: rgba(30, 30, 50, 0.9);
+        }
+
+        #close-overlay-btn {
+            position: absolute;
+            top: 12px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+            pointer-events: auto;
+        }
+
+        #close-overlay-btn:hover {
+            color: #fff;
+        }
+
+        #toggle-dims-btn {
+            display: block;
+            margin-top: 15px;
+            background: rgba(255, 204, 0, 0.1);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: background 0.2s;
+            cursor: pointer;
+            width: 100%;
+            pointer-events: auto;
+        }
+
+        #toggle-dims-btn:hover {
+            background: rgba(255, 204, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 10px 0;
+            color: #4da8da;
+        }
+
+        p {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            color: #b0b0c0;
+        }
+
+        .warning-box {
+            background: rgba(77, 168, 218, 0.2);
+            border-left: 3px solid #4da8da;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            color: #e0f0ff;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            margin-right: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        .controls-hint {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #888;
+            border-top: 1px solid #444;
+            padding-top: 10px;
+            text-align: center;
+        }
+
+        #copyright {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+            pointer-events: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            z-index: 100;
+        }
+
+        #specs-btn {
+            display: block;
+            margin-top: 15px;
+            background: #4da8da;
+            color: #0f0f1e;
+            text-decoration: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: background 0.2s, transform 0.1s;
+            pointer-events: auto;
+            /* Ensure it's clickable inside the overlay */
+        }
+
+        #specs-btn:hover {
+            background: #3a86b3;
+            transform: translateY(-1px);
+        }
+    </style>
+    <!-- Three.js and OrbitControls via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+
+<body>
+
+    <button id="ui-toggle-btn">Hide Panel</button>
+
+    <div id="ui-overlay">
+        <button id="close-overlay-btn" aria-label="Close panel">&times;</button>
+        <h1>Skeleton vs. Finished Spec</h1>
+        <p>Compare the heavy-duty bare metal structure alongside the fully dressed, tension-fabric interaction booth.
+        </p>
+
+        <div class="warning-box">
+            <strong>FABRICATION NOTE:</strong> The fabric "pillowcase" slides seamlessly over the internal billet
+            elbows, requiring no custom slits or tailoring.
+        </div>
+
+        <div class="legend-item">
+            <div class="color-box" style="background: #4da8da;"></div>
+            <span>Rigid Load-Bearing Roof Spine</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #ff7700; border: 1px solid #cc5500;"></div>
+            <span>Charging Station Dock</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #00ffcc; box-shadow: 0 0 8px #00ffcc;"></div>
+            <span>Inline LED Lighting</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #e0e0e0;"></div>
+            <span>1.5” Thick-Walled Tubing</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #cc3333;"></div>
+            <span>Flush Internal Billet Elbow</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box" style="background: #ffcc00;"></div>
+            <span>Architectural Dimensions</span>
+        </div>
+
+        <button id="toggle-dims-btn">Hide Dimensions</button>
+
+        <a href="fabrication_bom.html" id="specs-btn" target="_blank">View Fabrication Specs & BOM &rarr;</a>
+
+        <div class="controls-hint">
+            Left Click + Drag to Rotate<br>Scroll to Zoom | Right Click to Pan
+        </div>
+    </div>
+
+    <div id="copyright">&copy; 2026 Grace Robotics. All Rights Reserved. Confidential & Proprietary IP.</div>
+
+    <div id="canvas-container"></div>
+
+    <script>
+        let allDimensions = []; // Global array to hold measurement groups
+
+        window.onload = function () {
+            init3D();
+
+            // Setup Toggle Button
+            const toggleBtn = document.getElementById('ui-toggle-btn');
+            const overlay = document.getElementById('ui-overlay');
+            const closeBtn = document.getElementById('close-overlay-btn');
+
+            toggleBtn.addEventListener('click', function () {
+                if (overlay.classList.contains('hidden')) {
+                    overlay.classList.remove('hidden');
+                    this.innerText = 'Hide Panel';
+                } else {
+                    overlay.classList.add('hidden');
+                    this.innerText = 'Show Panel';
+                }
+            });
+
+            // Setup Close X Button
+            closeBtn.addEventListener('click', function () {
+                overlay.classList.add('hidden');
+                toggleBtn.innerText = 'Show Panel';
+            });
+
+            // Setup Dimensions Toggle Button
+            const toggleDimsBtn = document.getElementById('toggle-dims-btn');
+            toggleDimsBtn.addEventListener('click', function () {
+                allDimensions.forEach(dimGroup => {
+                    dimGroup.visible = !dimGroup.visible;
+                });
+                this.innerText = allDimensions.length > 0 && allDimensions[0].visible ? 'Hide Dimensions' : 'Show Dimensions';
+            });
+        };
+
+        function init3D() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x1a1a2e, 0.015);
+
+            // Camera setup - Pulled back to see both booths
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 10, 18);
+
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 4, 0);
+            controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+            dirLight.position.set(10, 20, 10);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            const fillLight = new THREE.DirectionalLight(0x4da8da, 0.3);
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+
+            const frontLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            frontLight.position.set(0, 5, 12);
+            scene.add(frontLight);
+
+            // Shared Global Materials
+            const matSteelBack = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7, metalness: 0.3 });
+            const matSteelLegs = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.7, metalness: 0.3 });
+            const matAlum = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.3, metalness: 0.8 });
+            const matJoint = new THREE.MeshStandardMaterial({ color: 0xd48b28, roughness: 0.4, metalness: 0.7 });
+            const matBracket = new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.5, metalness: 0.6 });
+            const matSpine = new THREE.MeshStandardMaterial({ color: 0x4da8da, roughness: 0.3, metalness: 0.8 });
+            const matDock = new THREE.MeshStandardMaterial({ color: 0xff7700, roughness: 0.6, metalness: 0.3 }); // Updated to power-orange
+            const matLED = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00ffcc, emissiveIntensity: 2.5 });
+            const boltHardwareMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.9, roughness: 0.2 });
+            const edgeMat = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+
+            // Battery Icon Texture for Charger (Generated via Canvas)
+            const chargeCanvas = document.createElement('canvas');
+            chargeCanvas.width = 256;
+            chargeCanvas.height = 256;
+            const cCtx = chargeCanvas.getContext('2d');
+            cCtx.fillStyle = '#ff7700'; // Match charger background
+            cCtx.fillRect(0, 0, 256, 256);
+            cCtx.strokeStyle = '#ffffff';
+            cCtx.lineWidth = 12;
+            cCtx.strokeRect(60, 40, 136, 120); // Battery body
+            cCtx.fillStyle = '#ffffff';
+            cCtx.fillRect(100, 20, 56, 20); // Battery nub
+            cCtx.beginPath(); // Lightning bolt
+            cCtx.moveTo(140, 60);
+            cCtx.lineTo(95, 110);
+            cCtx.lineTo(130, 110);
+            cCtx.lineTo(110, 150);
+            cCtx.lineTo(165, 90);
+            cCtx.lineTo(125, 90);
+            cCtx.fill();
+            cCtx.font = 'bold 36px "Segoe UI", sans-serif';
+            cCtx.textAlign = 'center';
+            cCtx.fillText('CHARGER', 128, 215);
+
+            const chargeTexture = new THREE.CanvasTexture(chargeCanvas);
+            const matChargeIcon = new THREE.MeshStandardMaterial({ map: chargeTexture, roughness: 0.6, metalness: 0.2 });
+
+            // Fabric Material (Blue)
+            const matFabric = new THREE.MeshStandardMaterial({
+                color: 0x1e5b9e,
+                roughness: 0.9,
+                metalness: 0.1,
+                side: THREE.DoubleSide
+            });
+
+            // Grid Floor
+            const gridHelper = new THREE.GridHelper(40, 40, 0x444444, 0x222222);
+            gridHelper.position.y = -0.01;
+            scene.add(gridHelper);
+
+            // Reusable Dimension Creator for Drafting Lines
+            function createDimension(p1, p2, text, textOffset, tickSize = 0.2) {
+                const group = new THREE.Group();
+                const mat = new THREE.LineBasicMaterial({ color: 0xffcc00, depthTest: false, transparent: true, opacity: 0.9 });
+
+                // Draw the main connecting line
+                const geom = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+                const line = new THREE.Line(geom, mat);
+                line.renderOrder = 999;
+                group.add(line);
+
+                // Calculate perpendicular cross-vector for architectural tick marks
+                const dir = new THREE.Vector3().subVectors(p2, p1).normalize();
+                let up = new THREE.Vector3(0, 1, 0);
+                if (Math.abs(dir.y) > 0.99) up = new THREE.Vector3(1, 0, 0);
+                const cross = new THREE.Vector3().crossVectors(dir, up).normalize();
+
+                if (cross.lengthSq() < 0.001) cross.set(0, 0, 1);
+
+                // Add tick marks to both ends
+                const t1a = new THREE.Vector3().copy(p1).addScaledVector(cross, tickSize);
+                const t1b = new THREE.Vector3().copy(p1).addScaledVector(cross, -tickSize);
+                const tick1 = new THREE.Line(new THREE.BufferGeometry().setFromPoints([t1a, t1b]), mat);
+                tick1.renderOrder = 999;
+                group.add(tick1);
+
+                const t2a = new THREE.Vector3().copy(p2).addScaledVector(cross, tickSize);
+                const t2b = new THREE.Vector3().copy(p2).addScaledVector(cross, -tickSize);
+                const tick2 = new THREE.Line(new THREE.BufferGeometry().setFromPoints([t2a, t2b]), mat);
+                tick2.renderOrder = 999;
+                group.add(tick2);
+
+                // Generate crisp text sprite using Canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024;
+                canvas.height = 128;
+                const ctx = canvas.getContext('2d');
+                ctx.font = 'bold 38px "Segoe UI", sans-serif';
+                ctx.fillStyle = '#ffcc00';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, 512, 64);
+
+                const tex = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(6, 0.75, 1); // 8:1 Aspect Ratio to prevent text stretching
+
+                // Position text at the midpoint with user offset
+                const mid = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5).add(textOffset);
+                sprite.position.copy(mid);
+                sprite.renderOrder = 1000;
+                group.add(sprite);
+
+                return group;
+            }
+
+            // --- REUSABLE BOOTH GENERATOR FUNCTION ---
+            function createBoothConfiguration(offsetX, isCovered) {
+                const booth = new THREE.Group();
+                booth.position.set(offsetX, 0, 0);
+
+                // --- 1. THE 3-PIECE STEEL BASE ---
+                // Scaled down back plate
+                const baseBackGeo = new THREE.BoxGeometry(3.0, 0.15, 1.0);
+                const baseBack = new THREE.Mesh(baseBackGeo, matSteelBack);
+                baseBack.position.set(0, 0.075, -1.4);
+                baseBack.castShadow = true;
+                baseBack.receiveShadow = true;
+                if (!isCovered) baseBack.add(new THREE.LineSegments(new THREE.EdgesGeometry(baseBackGeo), edgeMat));
+                booth.add(baseBack);
+
+                // Shortened and tucked-in left leg
+                const baseLeftGeo = new THREE.BoxGeometry(0.8, 0.15, 2.0);
+                const baseLeft = new THREE.Mesh(baseLeftGeo, matSteelLegs);
+                baseLeft.position.set(-1.1, 0.075, 0.15); // Gap placed at z = -0.875
+                baseLeft.castShadow = true;
+                baseLeft.receiveShadow = true;
+                if (!isCovered) baseLeft.add(new THREE.LineSegments(new THREE.EdgesGeometry(baseLeftGeo), edgeMat));
+                booth.add(baseLeft);
+
+                // Shortened and tucked-in right leg
+                const baseRightGeo = new THREE.BoxGeometry(0.8, 0.15, 2.0);
+                const baseRight = new THREE.Mesh(baseRightGeo, matSteelLegs);
+                baseRight.position.set(1.1, 0.075, 0.15);
+                baseRight.castShadow = true;
+                baseRight.receiveShadow = true;
+                if (!isCovered) baseRight.add(new THREE.LineSegments(new THREE.EdgesGeometry(baseRightGeo), edgeMat));
+                booth.add(baseRight);
+
+                const connectorGeo = new THREE.BoxGeometry(0.6, 0.04, 0.3);
+                const matConnector = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.5, metalness: 0.8 });
+
+                const leftConnector = new THREE.Mesh(connectorGeo, matConnector);
+                leftConnector.position.set(-1.1, 0.17, -0.875);
+                booth.add(leftConnector);
+
+                const rightConnector = new THREE.Mesh(connectorGeo, matConnector);
+                rightConnector.position.set(1.1, 0.17, -0.875);
+                booth.add(rightConnector);
+
+                const baseBoltGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.1, 16);
+                const addBaseBolt = (x, z) => {
+                    const bolt = new THREE.Mesh(baseBoltGeo, boltHardwareMat);
+                    bolt.position.set(x, 0.19, z);
+                    booth.add(bolt);
+                };
+
+                // Adjusted bolt positions for the new compact plates
+                addBaseBolt(-1.25, -0.95); addBaseBolt(-0.95, -0.95);
+                addBaseBolt(-1.25, -0.8); addBaseBolt(-0.95, -0.8);
+                addBaseBolt(1.25, -0.95); addBaseBolt(0.95, -0.95);
+                addBaseBolt(1.25, -0.8); addBaseBolt(0.95, -0.8);
+
+
+                // --- 2. VERTICAL FRAMING ---
+                const poleRadius = 0.05; // Scaled down for a thinner, sleeker pipe scale
+                // Scaled to achieve exactly 2.2m (approx 7'3") total height
+                const segmentHeight = 3.33;
+                const curveRadius = 1.5;
+                const numPoles = 5;
+                const topHeight = segmentHeight * 2 + 0.15;
+
+                for (let i = 0; i < numPoles; i++) {
+                    const angle = Math.PI + (Math.PI / (numPoles - 1)) * i;
+                    const px = curveRadius * Math.cos(angle);
+                    const pz = curveRadius * Math.sin(angle);
+
+                    const poleBottom = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius, poleRadius, segmentHeight, 16), matAlum);
+                    poleBottom.position.set(px, segmentHeight / 2 + 0.15, pz);
+                    poleBottom.castShadow = true;
+                    booth.add(poleBottom);
+
+                    if (i === 0 || i === numPoles - 1) {
+                        const ledStripGeo = new THREE.CylinderGeometry(0.015, 0.015, segmentHeight - 0.2, 8); // Scaled down LED strip
+                        const ledOffset = 0.06; // Adjusted for thinner pole
+                        const ledPx = (curveRadius - ledOffset) * Math.cos(angle);
+                        const ledPz = (curveRadius - ledOffset) * Math.sin(angle);
+
+                        const ledBottom = new THREE.Mesh(ledStripGeo, matLED);
+                        ledBottom.position.set(ledPx, segmentHeight / 2 + 0.15, ledPz);
+                        booth.add(ledBottom);
+
+                        const ledTop = new THREE.Mesh(ledStripGeo, matLED);
+                        ledTop.position.set(ledPx, segmentHeight * 1.5 + 0.15, ledPz);
+                        booth.add(ledTop);
+
+                        const glowLight = new THREE.PointLight(0x00ffcc, 0.6, 6);
+                        glowLight.position.set(ledPx, segmentHeight, ledPz);
+                        booth.add(glowLight);
+                    }
+
+                    const jointMid = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.3, poleRadius * 1.3, 0.3, 16), matJoint);
+                    jointMid.position.set(px, segmentHeight + 0.15, pz);
+                    booth.add(jointMid);
+
+                    const poleTop = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius, poleRadius, segmentHeight, 16), matAlum);
+                    poleTop.position.set(px, segmentHeight * 1.5 + 0.15, pz);
+                    poleTop.castShadow = true;
+                    booth.add(poleTop);
+                }
+
+                const curveGeo = new THREE.TorusGeometry(curveRadius, poleRadius, 16, 32, Math.PI);
+
+                const ribBottom = new THREE.Mesh(curveGeo, matAlum);
+                ribBottom.rotation.x = Math.PI / 2;
+                ribBottom.rotation.z = Math.PI;
+                ribBottom.position.set(0, 0.3, 0);
+                booth.add(ribBottom);
+
+                const ribMid = new THREE.Mesh(curveGeo, matAlum);
+                ribMid.rotation.x = Math.PI / 2;
+                ribMid.rotation.z = Math.PI;
+                ribMid.position.set(0, segmentHeight + 0.15, 0);
+                booth.add(ribMid);
+
+                const ribTop = new THREE.Mesh(curveGeo, matAlum);
+                ribTop.rotation.x = Math.PI / 2;
+                ribTop.rotation.z = Math.PI;
+                ribTop.position.set(0, topHeight, 0);
+                booth.add(ribTop);
+
+                const crossJointGeo = new THREE.CylinderGeometry(poleRadius * 1.5, poleRadius * 1.5, 0.25, 16);
+                for (let i = 0; i < numPoles; i++) {
+                    const angle = Math.PI + (Math.PI / (numPoles - 1)) * i;
+                    const px = curveRadius * Math.cos(angle);
+                    const pz = curveRadius * Math.sin(angle);
+
+                    const bottomJoint = new THREE.Mesh(crossJointGeo, matJoint);
+                    bottomJoint.position.set(px, 0.3, pz);
+                    booth.add(bottomJoint);
+
+                    if (i !== 2) {
+                        const topJoint = new THREE.Mesh(crossJointGeo, matJoint);
+                        topJoint.position.set(px, topHeight, pz);
+                        booth.add(topJoint);
+                    }
+                }
+
+
+                // --- 3. CANOPY HALO & CANTILEVER SPINE ---
+                const canopyRadius = 2.0; // Reduced canopy diameter to 4 feet
+                const canopyCenterZ = 0.5; // Shifted center back so edge touches the z=-1.5 back wall
+                // Adjusted clearance so the final height hits exactly 6.56 ft (2.0 meters)
+                const canopyClearance = 0.41;
+                const canopyHeight = topHeight + canopyClearance;
+
+                const canopyLight = new THREE.PointLight(0x00ffcc, 0.8, 6);
+                canopyLight.position.set(0, canopyHeight - 0.5, canopyCenterZ);
+                booth.add(canopyLight);
+
+                // Extend the spine so it firmly connects the back spigot (z=-1.5) to the front halo joint (z=2.5)
+                const spineLength = 4.0;
+                const spineCenterZ = 0.5;
+
+                const spine = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.5, poleRadius * 1.5, spineLength, 16), matSpine);
+                spine.rotation.x = Math.PI / 2;
+                spine.position.set(0, canopyHeight, spineCenterZ);
+                spine.castShadow = true;
+                booth.add(spine);
+
+                // Flush Internal Billet Elbow
+                const elbowGroup = new THREE.Group();
+
+                const elbowRiser = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.3, poleRadius * 1.3, canopyClearance, 16), matBracket);
+                elbowRiser.position.set(0, topHeight + canopyClearance / 2, -1.5);
+                elbowGroup.add(elbowRiser);
+
+                const elbowCorner = new THREE.Mesh(new THREE.SphereGeometry(poleRadius * 1.3, 16, 16), matBracket);
+                elbowCorner.position.set(0, canopyHeight, -1.5);
+                elbowGroup.add(elbowCorner);
+
+                const elbowStubForward = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.3, poleRadius * 1.3, 0.6, 16), matBracket);
+                elbowStubForward.rotation.x = Math.PI / 2;
+                elbowStubForward.position.set(0, canopyHeight, -1.2);
+                elbowGroup.add(elbowStubForward);
+
+                const elbowStubLeft = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.3, poleRadius * 1.3, 0.4, 16), matBracket);
+                elbowStubLeft.rotation.z = Math.PI / 2;
+                elbowStubLeft.position.set(-0.2, canopyHeight, -1.5);
+                elbowGroup.add(elbowStubLeft);
+
+                const elbowStubRight = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.3, poleRadius * 1.3, 0.4, 16), matBracket);
+                elbowStubRight.rotation.z = Math.PI / 2;
+                elbowStubRight.position.set(0.2, canopyHeight, -1.5);
+                elbowGroup.add(elbowStubRight);
+
+                booth.add(elbowGroup);
+
+                const haloGeo = new THREE.TorusGeometry(canopyRadius, poleRadius, 16, 32, Math.PI / 2);
+                const ledArcGap = 0.15;
+                const ledArcGeo = new THREE.TorusGeometry(canopyRadius - 0.05, 0.015, 16, 32, (Math.PI / 2) - ledArcGap); // Adjusted LED thickness and offset
+
+                for (let i = 0; i < 4; i++) {
+                    const arc = new THREE.Mesh(haloGeo, matAlum);
+                    arc.rotation.x = Math.PI / 2;
+                    arc.rotation.z = (Math.PI / 2) * i;
+                    arc.position.set(0, canopyHeight, canopyCenterZ);
+                    arc.castShadow = true;
+                    booth.add(arc);
+
+                    const ledArc = new THREE.Mesh(ledArcGeo, matLED);
+                    ledArc.rotation.x = Math.PI / 2;
+                    ledArc.rotation.z = (Math.PI / 2) * i + (ledArcGap / 2);
+                    ledArc.position.set(0, canopyHeight - 0.05, canopyCenterZ);
+                    booth.add(ledArc);
+
+                    const jAngle = (Math.PI / 2) * i;
+                    const jx = canopyRadius * Math.cos(jAngle);
+                    const jz = canopyCenterZ + canopyRadius * Math.sin(jAngle);
+                    const haloJoint = new THREE.Mesh(new THREE.CylinderGeometry(poleRadius * 1.4, poleRadius * 1.4, 0.3, 16), matJoint);
+                    haloJoint.rotation.x = Math.PI / 2;
+                    haloJoint.rotation.z = jAngle;
+                    haloJoint.position.set(jx, canopyHeight, jz);
+
+                    if (i !== 3) booth.add(haloJoint);
+                }
+
+
+                // --- 4. ROBOT GHOST ---
+                const robotMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: isCovered ? 0.9 : 0.15, depthWrite: false });
+
+                // Recalibrated scale: Total height 2.2m (86.6") = ~6.8 units. Ratio is ~12.7 inches per unit.
+                // 59 inches / 12.7 inches/unit = 4.64 units.
+                const robotHeight = 4.64;
+
+                // Slightly reduced radius to maintain correct proportions with the shorter height
+                const robot = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.58, robotHeight, 32), robotMat);
+                robot.position.set(0, robotHeight / 2 + 0.15, 0);
+                robot.castShadow = isCovered;
+                booth.add(robot);
+
+                // Scaled screen size and position
+                const screen = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.1, 0.1), robotMat);
+                screen.position.set(0, robotHeight * 0.7 + 0.15, 0.55);
+                screen.rotation.x = -0.1;
+                booth.add(screen);
+
+                // Scaled face position
+                const faceMat = new THREE.MeshStandardMaterial({ color: 0xff4444, transparent: true, opacity: isCovered ? 0.9 : 0.4 });
+                const face = new THREE.Mesh(new THREE.SphereGeometry(0.35, 16, 16), faceMat);
+                face.position.set(0, robotHeight * 0.9 + 0.15, 0.35);
+                booth.add(face);
+
+
+                // --- 5. CHARGING STATION DOCK ---
+                const dockGroup = new THREE.Group();
+                const dockBase = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.1, 0.8), matDock);
+                dockBase.position.set(0, 0.05, 0);
+                dockGroup.add(dockBase);
+
+                // Increased the height of the back pedestal from 0.3 to 0.8
+                const dockBack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.8, 0.2), matDock);
+                dockBack.position.set(0, 0.4, -0.3); // Shifted Y position up to accommodate the new height
+                dockGroup.add(dockBack);
+
+                // Add Battery Icon to the front face of the charger
+                const iconPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.35), matChargeIcon);
+                // Position slightly in front of the dockBack's front face to prevent texture clipping
+                iconPlane.position.set(0, 0.6, -0.19);
+                dockGroup.add(iconPlane);
+
+                dockGroup.position.set(0, 0.15, -0.6);
+                booth.add(dockGroup);
+
+
+                // --- 6. ADD FABRIC COVERS IF REQUESTED ---
+                if (isCovered) {
+                    // Curved Back Wall Skin
+                    // Starts at PI/2 and sweeps PI to perfectly cover the back (-Z) curve from right to left
+                    const wallGeo = new THREE.CylinderGeometry(curveRadius + 0.12, curveRadius + 0.12, topHeight, 32, 1, true, Math.PI / 2, Math.PI);
+                    const wallSkin = new THREE.Mesh(wallGeo, matFabric);
+                    wallSkin.position.set(0, topHeight / 2 + 0.15, 0);
+                    wallSkin.castShadow = true;
+                    wallSkin.receiveShadow = true;
+                    booth.add(wallSkin);
+
+                    // Canopy Rounded Rim (Tension fabric wrapping around the aluminum tube)
+                    const fabricThickness = poleRadius * 1.6; // Thick enough to enclose the spine perfectly
+                    const rimGeo = new THREE.TorusGeometry(canopyRadius, fabricThickness, 16, 64);
+                    const rimSkin = new THREE.Mesh(rimGeo, matFabric);
+                    rimSkin.rotation.x = Math.PI / 2;
+                    rimSkin.position.set(0, canopyHeight, canopyCenterZ);
+                    rimSkin.castShadow = true;
+                    booth.add(rimSkin);
+
+                    // Top Roof Cover
+                    const topRoofGeo = new THREE.CircleGeometry(canopyRadius, 64);
+                    const topRoofSkin = new THREE.Mesh(topRoofGeo, matFabric);
+                    topRoofSkin.rotation.x = -Math.PI / 2;
+                    topRoofSkin.position.set(0, canopyHeight + fabricThickness, canopyCenterZ);
+                    topRoofSkin.castShadow = true;
+                    booth.add(topRoofSkin);
+
+                    // Bottom Roof Diffuser (Creates a softbox lighting effect)
+                    const bottomRoofGeo = new THREE.CircleGeometry(canopyRadius, 64);
+                    const matFabricDiffuser = new THREE.MeshStandardMaterial({
+                        color: 0xffffff,
+                        roughness: 0.9,
+                        metalness: 0.0,
+                        transparent: true,
+                        opacity: 0.85,
+                        emissive: 0xffffff,
+                        emissiveIntensity: 0.4, // Fakes the internal LED glow
+                        side: THREE.DoubleSide
+                    });
+                    const bottomRoofSkin = new THREE.Mesh(bottomRoofGeo, matFabricDiffuser);
+                    bottomRoofSkin.rotation.x = Math.PI / 2;
+                    bottomRoofSkin.position.set(0, canopyHeight - fabricThickness, canopyCenterZ);
+                    booth.add(bottomRoofSkin);
+                }
+
+                // --- 7. ARCHITECTURAL MEASUREMENTS ---
+                if (isCovered) {
+                    const dimGroup = new THREE.Group();
+                    allDimensions.push(dimGroup);
+                    booth.add(dimGroup);
+
+                    const addDim = (p1, p2, text, offset, tickSize) => {
+                        dimGroup.add(createDimension(p1, p2, text, offset, tickSize));
+                    };
+
+                    // Overall Height
+                    addDim(
+                        new THREE.Vector3(-canopyRadius - 0.6, 0, canopyCenterZ),
+                        new THREE.Vector3(-canopyRadius - 0.6, canopyHeight + 0.15, canopyCenterZ),
+                        "2.2m (7' 3\") OVERALL HEIGHT",
+                        new THREE.Vector3(-0.8, 0, 0),
+                        0.2
+                    );
+
+                    // Canopy Diameter
+                    addDim(
+                        new THREE.Vector3(-canopyRadius, canopyHeight + 0.7, canopyCenterZ),
+                        new THREE.Vector3(canopyRadius, canopyHeight + 0.7, canopyCenterZ),
+                        "1.2m (4' 0\") CANOPY DIAMETER",
+                        new THREE.Vector3(0, 0.4, 0),
+                        0.2
+                    );
+
+                    // Overall Footprint Depth
+                    addDim(
+                        new THREE.Vector3(canopyRadius + 0.6, 0, -1.5),
+                        new THREE.Vector3(canopyRadius + 0.6, 0, 2.5), // Match new spine length
+                        "1.2m (4' 0\") OVERALL DEPTH",
+                        new THREE.Vector3(0.8, 0, 0),
+                        0.2
+                    );
+
+                    // Entry Clearance
+                    addDim(
+                        new THREE.Vector3(0, 0, 2.5 + 0.3), // Shifted back to match new front edge
+                        new THREE.Vector3(0, canopyHeight - 0.128, 2.5 + 0.3),
+                        "2.15m (7' 1\") ENTRY CLEARANCE",
+                        new THREE.Vector3(0, 0, 0.6),
+                        0.2
+                    );
+                }
+
+                scene.add(booth);
+            }
+
+            // Generate Bare Skeleton on the left
+            createBoothConfiguration(-3.5, false);
+
+            // Generate Fully Clad & Branded version on the right
+            createBoothConfiguration(3.5, true);
+
+
+            // Handle Resize
+            window.addEventListener('resize', onWindowResize, false);
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            // Animation Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            animate();
+        }
+    </script>
+</body>
+
+</html>
